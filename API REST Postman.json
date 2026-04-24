@@ -1,0 +1,713 @@
+{
+	"info": {
+		"_postman_id": "7fa1bc82-59e5-4f48-a0af-6f9661fbe2b1",
+		"name": "MVC Helpdesk – API REST v1",
+		"description": "API REST completa del sistema MVC Helpdesk.\n\n**Base URL:** `http://localhost/MVC/api/v1`\n\n**Autenticación:** Bearer token.\n1. Llama a POST /auth/login con tus credenciales.\n2. Copia el `access_token` de la respuesta a la variable de colección `token`.\n3. Todas las demás peticiones envían automáticamente `Authorization: Bearer {{token}}`.\n\n**Códigos de estado:**\n- 200 OK, 201 Created\n- 400 Bad Request, 401 Unauthorized, 403 Forbidden\n- 404 Not Found, 405 Method Not Allowed, 422 Unprocessable Entity\n\n**Formato de body:** `Content-Type: application/json` en todas las peticiones con cuerpo.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost/MVC/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string",
+			"description": "Bearer token — se guarda automáticamente al ejecutar Login"
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json.access_token) {",
+									"  pm.collectionVariables.set('token', json.access_token);",
+									"  console.log('Token guardado:', json.access_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@admin.com\",\n  \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Autentica al usuario y devuelve un Bearer token. El script 'Tests' guarda el token en la variable de colección `token` automáticamente."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"originalRequest": {
+								"method": "POST",
+								"body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@admin.com\",\n  \"password\": \"admin123\"\n}" }
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n  \"access_token\": \"07cbc7e578f625e99fd39f5a6ee2c30c2f00cfa04cb1bfb777d95bac1c87b2d0\",\n  \"token_type\": \"Bearer\",\n  \"user\": {\n    \"id\": 4,\n    \"nombre\": \"Admin\",\n    \"email\": \"admin@admin.com\",\n    \"rol\": \"admin\"\n  }\n}"
+						},
+						{
+							"name": "401 Credenciales inválidas",
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"error\": \"Credenciales inválidas\" }"
+						}
+					]
+				},
+				{
+					"name": "Me (usuario autenticado)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/auth/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "me"]
+						},
+						"description": "Devuelve los datos básicos del usuario cuyo token se envía."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n  \"id\": 4,\n  \"nombre\": \"Admin\",\n  \"email\": \"admin@admin.com\",\n  \"rol\": \"admin\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "logout"]
+						},
+						"description": "Invalida el token Bearer del usuario autenticado."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"message\": \"Sesión cerrada correctamente\" }"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Tickets",
+			"item": [
+				{
+					"name": "Listar tickets",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/tickets?page=1&per_page=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["tickets"],
+							"query": [
+								{ "key": "page", "value": "1", "description": "Página (por defecto 1)" },
+								{ "key": "per_page", "value": "20", "description": "Resultados por página (máx. 100)" },
+								{ "key": "estado", "value": "", "disabled": true, "description": "sin_abrir | abierta | en_proceso | resuelta | cerrada" },
+								{ "key": "prioridad", "value": "", "disabled": true, "description": "baja | media | alta | critica" },
+								{ "key": "categoria_id", "value": "", "disabled": true },
+								{ "key": "q", "value": "", "disabled": true, "description": "Búsqueda libre por texto" }
+							]
+						},
+						"description": "Lista tickets con paginación. Admins ven todos; agentes solo los de sus departamentos o asignados."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n  \"page\": 1,\n  \"per_page\": 20,\n  \"total\": 4,\n  \"tickets\": [\n    {\n      \"id\": 20,\n      \"titulo\": \"Prueba de Cliente\",\n      \"estado\": \"abierta\",\n      \"prioridad\": \"critica\",\n      \"categoria_id\": 8,\n      \"departamento_id\": 6,\n      \"creado_por\": 6,\n      \"asignado_a\": 6,\n      \"created_at\": \"2026-04-22 21:05:04\"\n    }\n  ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Crear ticket",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"titulo\": \"Problema con impresora\",\n  \"descripcion\": \"La impresora de la planta 2 no responde desde esta mañana.\",\n  \"categoria_id\": 8,\n  \"prioridad\": \"alta\",\n  \"departamento_id\": 6,\n  \"asignado_a\": null\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tickets",
+							"host": ["{{baseUrl}}"],
+							"path": ["tickets"]
+						},
+						"description": "Crea una nueva incidencia. `titulo` mín. 3 chars, `descripcion` mín. 10 chars. `prioridad`: baja|media|alta|critica."
+					},
+					"response": [
+						{
+							"name": "201 Created",
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"ticket_id\": 24, \"message\": \"Incidencia creada correctamente.\" }"
+						},
+						{
+							"name": "422 Validación fallida",
+							"status": "Unprocessable Entity",
+							"code": 422,
+							"_postman_previewlanguage": "json",
+							"body": "{\n  \"error\": \"Errores de validación\",\n  \"details\": {\n    \"titulo\": \"El título es obligatorio (mín. 3 caracteres).\",\n    \"descripcion\": \"La descripción es obligatoria (mín. 10 caracteres).\"\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Ver ticket",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/tickets/17",
+							"host": ["{{baseUrl}}"],
+							"path": ["tickets", "17"]
+						},
+						"description": "Devuelve el detalle completo de una incidencia. 404 si el usuario no tiene acceso o no existe."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n  \"ticket\": {\n    \"id\": 17,\n    \"titulo\": \"Fallo acceso red\",\n    \"descripcion\": \"...\",\n    \"estado\": \"abierta\",\n    \"prioridad\": \"media\",\n    \"categoria_id\": 8,\n    \"departamento_id\": 6,\n    \"creado_por\": 4,\n    \"asignado_a\": null,\n    \"created_at\": \"2026-04-22 10:00:00\"\n  }\n}"
+						},
+						{
+							"name": "404 No encontrado",
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"error\": \"Incidencia no encontrada\" }"
+						}
+					]
+				},
+				{
+					"name": "Actualizar ticket",
+					"request": {
+						"method": "PATCH",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"estado\": \"en_proceso\",\n  \"asignado_a\": 6\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tickets/17",
+							"host": ["{{baseUrl}}"],
+							"path": ["tickets", "17"]
+						},
+						"description": "Actualiza `estado` y/o `asignado_a`. Solo admin puede reasignar. Agentes solo pueden cambiar a en_proceso o resuelta."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"message\": \"Incidencia actualizada correctamente\" }"
+						}
+					]
+				},
+				{
+					"name": "Cambiar estado",
+					"request": {
+						"method": "PATCH",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"estado\": \"abierta\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tickets/17/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["tickets", "17", "status"]
+						},
+						"description": "Endpoint dedicado para cambiar solo el estado. Admins pueden usar cualquier estado; agentes solo abierta|en_proceso|resuelta."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"message\": \"Estado actualizado correctamente\", \"estado\": \"abierta\" }"
+						},
+						{
+							"name": "422 Estado inválido",
+							"status": "Unprocessable Entity",
+							"code": 422,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"error\": \"Estado no válido\", \"details\": { \"estado\": \"Valores permitidos: sin_abrir, abierta, en_proceso, resuelta, cerrada\" } }"
+						}
+					]
+				},
+				{
+					"name": "Cambiar prioridad",
+					"request": {
+						"method": "PATCH",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"prioridad\": \"alta\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tickets/17/priority",
+							"host": ["{{baseUrl}}"],
+							"path": ["tickets", "17", "priority"]
+						},
+						"description": "Cambia la prioridad de una incidencia. Solo disponible para admins. Valores: baja|media|alta|critica."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"message\": \"Prioridad actualizada correctamente\", \"prioridad\": \"alta\" }"
+						},
+						{
+							"name": "403 Solo admin",
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"error\": \"Solo los administradores pueden cambiar la prioridad\" }"
+						}
+					]
+				},
+				{
+					"name": "Ver comentarios del ticket",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/tickets/17/comments",
+							"host": ["{{baseUrl}}"],
+							"path": ["tickets", "17", "comments"]
+						},
+						"description": "Lista todos los comentarios y eventos de actividad de una incidencia."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n  \"comments\": [\n    {\n      \"id\": 1,\n      \"ticket_id\": 17,\n      \"user_id\": 4,\n      \"contenido\": \"Revisado el cable de red.\",\n      \"is_internal\": false,\n      \"created_at\": \"2026-04-22 10:05:00\"\n    }\n  ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Añadir comentario",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"contenido\": \"El problema estaba en la configuración del switch.\",\n  \"is_internal\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tickets/17/comments",
+							"host": ["{{baseUrl}}"],
+							"path": ["tickets", "17", "comments"]
+						},
+						"description": "Añade un comentario a una incidencia. `is_internal: true` requiere rol admin. Mínimo 2 caracteres."
+					},
+					"response": [
+						{
+							"name": "201 Created",
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"comment_id\": 33, \"message\": \"Comentario añadido correctamente\" }"
+						}
+					]
+				},
+				{
+					"name": "Eliminar ticket",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{baseUrl}}/tickets/17",
+							"host": ["{{baseUrl}}"],
+							"path": ["tickets", "17"]
+						},
+						"description": "Soft-delete de una incidencia. Solo admins. El registro queda en BD con `deleted_at` relleno."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"message\": \"Incidencia eliminada correctamente\" }"
+						},
+						{
+							"name": "403 Sin permisos",
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"error\": \"Solo los administradores pueden eliminar incidencias\" }"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Listar usuarios",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": ["{{baseUrl}}"],
+							"path": ["users"],
+							"query": [
+								{ "key": "q", "value": "", "disabled": true, "description": "Búsqueda por nombre o email" }
+							]
+						},
+						"description": "Lista todos los usuarios. Solo accesible con rol admin."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n  \"users\": [\n    { \"id\": 4, \"nombre\": \"Admin\", \"email\": \"admin@admin.com\", \"rol\": \"admin\", \"is_active\": 1 },\n    { \"id\": 6, \"nombre\": \"Angel\", \"email\": \"angel@test.com\", \"rol\": \"user\", \"is_active\": 1 }\n  ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Mi perfil",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/users/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "me"]
+						},
+						"description": "Atajo que devuelve el perfil básico del usuario autenticado (equivalente a /auth/me)."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n  \"id\": 4,\n  \"nombre\": \"Admin\",\n  \"email\": \"admin@admin.com\",\n  \"rol\": \"admin\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Ver usuario por ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/users/4",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "4"]
+						},
+						"description": "Devuelve datos públicos del usuario más sus estadísticas de tickets."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n  \"user\": {\n    \"id\": 4,\n    \"nombre\": \"Admin\",\n    \"email\": \"admin@admin.com\",\n    \"rol\": \"admin\",\n    \"avatar_path\": \"/MVC/uploads/avatars/u4_1775741554.png\",\n    \"last_seen_at\": \"2026-04-23 01:12:10\"\n  },\n  \"stats\": {\n    \"pendientes\": \"1\",\n    \"en_proceso\": \"0\",\n    \"resueltos\": \"0\",\n    \"creados\": \"3\"\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Actualizar usuario",
+					"request": {
+						"method": "PATCH",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Admin Principal\",\n  \"email\": \"admin@admin.com\",\n  \"rol\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/4",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "4"]
+						},
+						"description": "Actualiza nombre, email y/o rol. Un usuario puede editar su propio perfil; solo admins pueden cambiar el rol."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"message\": \"Usuario actualizado\" }"
+						}
+					]
+				},
+				{
+					"name": "Toggle activo/inactivo",
+					"request": {
+						"method": "PATCH",
+						"url": {
+							"raw": "{{baseUrl}}/users/6/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", "6", "status"]
+						},
+						"description": "Activa o desactiva una cuenta de usuario. Solo admins. No se puede desactivar la propia cuenta."
+					},
+					"response": [
+						{
+							"name": "200 — desactivado",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"is_active\": 0 }"
+						},
+						{
+							"name": "200 — reactivado",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"is_active\": 1 }"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "Listar notificaciones",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/notifications",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications"]
+						},
+						"description": "Devuelve todas las notificaciones del usuario autenticado, ordenadas por fecha descendente."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n  \"notifications\": [\n    {\n      \"id\": 5,\n      \"type\": \"ticket_assigned\",\n      \"message\": \"Se te ha asignado la incidencia #17\",\n      \"resource_type\": \"ticket\",\n      \"resource_id\": 17,\n      \"read_at\": null,\n      \"created_at\": \"2026-04-23 10:00:00\"\n    }\n  ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Conteo no leídas",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/notifications/count",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications", "count"]
+						},
+						"description": "Devuelve el número de notificaciones sin leer. Útil para el badge de la campana."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"count\": 2 }"
+						}
+					]
+				},
+				{
+					"name": "Marcar una como leída",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{baseUrl}}/notifications/5/read",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications", "5", "read"]
+						},
+						"description": "Marca como leída la notificación con el ID dado."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"message\": \"Notificación 5 marcada como leída\" }"
+						}
+					]
+				},
+				{
+					"name": "Marcar todas como leídas",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{baseUrl}}/notifications/read-all",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications", "read-all"]
+						},
+						"description": "Marca todas las notificaciones del usuario autenticado como leídas."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"message\": \"Todas las notificaciones marcadas como leídas\" }"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Kanban",
+			"item": [
+				{
+					"name": "Tablero kanban",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/kanban",
+							"host": ["{{baseUrl}}"],
+							"path": ["kanban"]
+						},
+						"description": "Devuelve todas las incidencias accesibles agrupadas por estado. Admins ven todas; agentes ven las de sus departamentos."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n  \"kanban\": {\n    \"sin_abrir\": [],\n    \"abierta\": [ { \"id\": 17, \"titulo\": \"Fallo acceso red\", ... } ],\n    \"en_proceso\": [],\n    \"resuelta\": [],\n    \"cerrada\": []\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Mover ticket de columna",
+					"request": {
+						"method": "PATCH",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"estado\": \"en_proceso\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/kanban/17/move",
+							"host": ["{{baseUrl}}"],
+							"path": ["kanban", "17", "move"]
+						},
+						"description": "Mueve una tarjeta a otra columna actualizando su estado. Valores: sin_abrir|abierta|en_proceso|resuelta|cerrada."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"message\": \"Estado actualizado correctamente\", \"estado\": \"en_proceso\" }"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Dashboard",
+			"item": [
+				{
+					"name": "Estadísticas del dashboard",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/dashboard/stats",
+							"host": ["{{baseUrl}}"],
+							"path": ["dashboard", "stats"]
+						},
+						"description": "Devuelve estadísticas resumidas del usuario, tickets recientes y conteo de notificaciones no leídas."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n  \"stats\": {\n    \"pendientes\": 1,\n    \"en_proceso\": 0,\n    \"resueltos\": 0,\n    \"creados\": 3\n  },\n  \"recent\": [\n    { \"id\": 20, \"titulo\": \"Prueba de Cliente\", \"estado\": \"abierta\", ... }\n  ],\n  \"unread_notifications\": 0\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Presence",
+			"item": [
+				{
+					"name": "Ping de presencia",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{baseUrl}}/presence/ping",
+							"host": ["{{baseUrl}}"],
+							"path": ["presence", "ping"]
+						},
+						"description": "Actualiza el timestamp `last_seen_at` del usuario autenticado. Llamar periódicamente (recomendado: cada 60 s)."
+					},
+					"response": [
+						{
+							"name": "200 OK",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{ \"ok\": true, \"ts\": \"2026-04-23 01:12:10\" }"
+						}
+					]
+				}
+			]
+		}
+	]
+}

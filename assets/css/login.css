@@ -1,0 +1,170 @@
+* { box-sizing: border-box; }
+
+/* Fuente base y color de fallback mientras carga el canvas WebGL */
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: #ffffff;
+  background: #1E1B4B;
+}
+
+/* Canvas del gradiente animado fijado detrás de todo el contenido */
+#webGLApp {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+}
+
+/* Contenedor que centra el card en la pantalla */
+.autenticacion {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 28px;
+}
+
+/* Tarjeta principal — fondo oscuro semitransparente con efecto cristal */
+.autenticacion-tarjeta {
+  width: min(420px, 92vw);
+  background: rgba(15, 13, 40, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(99, 102, 241, 0.4); /* borde índigo sutil */
+  border-radius: 14px;
+  padding: 44px 42px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* Título del formulario */
+.autenticacion-tarjeta h1 {
+  margin: 0 0 28px;
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #f1f5f9;
+  letter-spacing: 0.2px;
+}
+
+/* Cada campo del formulario */
+.autenticacion-campo {
+  margin-bottom: 22px;
+  overflow: visible;
+}
+
+/* Input con fondo oscuro fijo para que coincida con el autofill del navegador */
+.autenticacion-campo input {
+  width: 100%;
+  border: 0;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgb(28, 25, 58);
+  border-radius: 6px 6px 0 0;
+  padding: 12px 10px 10px;
+  font-size: 16px;
+  font-family: 'Inter', system-ui, sans-serif;
+  outline: none;
+  color: #e2e8f0;
+  transition: border-color 0.2s;
+}
+
+.autenticacion-campo input::placeholder { color: rgba(255, 255, 255, 0.35); }
+.autenticacion-campo input:focus       { border-bottom-color: #818cf8; }
+
+/* Sobreescribe el fondo blanco que inyecta el navegador al autocompletar */
+.autenticacion-campo input:-webkit-autofill,
+.autenticacion-campo input:-webkit-autofill:hover,
+.autenticacion-campo input:-webkit-autofill:focus,
+.autenticacion-campo input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0px 1000px rgb(28, 25, 58) inset;
+  -webkit-text-fill-color: #e2e8f0;
+  caret-color: #e2e8f0;
+  border-bottom-color: rgba(255, 255, 255, 0.2) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Botón para mostrar u ocultar la contraseña */
+.input-wrap { position: relative; }
+.input-wrap input { padding-right: 54px; position: relative; z-index: 1; }
+
+.toggle-pass {
+  position: absolute;
+  right: 6px; top: 50%;
+  transform: translateY(-50%);
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; border: 0; cursor: pointer;
+  font-size: 18px; line-height: 1;
+  color: rgba(255, 255, 255, 0.5);
+  opacity: 0.9; z-index: 2; padding: 0;
+}
+.toggle-pass:hover  { opacity: 1; }
+.toggle-pass:focus  { outline: none; }
+
+/* Fila de opciones: checkbox "Recuérdame" y link de contraseña olvidada */
+.autenticacion-fila {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; margin: 6px 0 18px;
+  font-size: 14px; color: rgba(255, 255, 255, 0.55);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.recordar-sesion { display: flex; align-items: center; gap: 8px; user-select: none; }
+.recordar-sesion input { width: 16px; height: 16px; accent-color: #4b7bd1; }
+
+/* Links globales en tono índigo claro */
+a { color: #818cf8; text-decoration: none; font-family: 'Inter', system-ui, sans-serif; }
+a:hover { text-decoration: underline; }
+
+/* Botón principal de envío */
+.btn {
+  width: 100%; border: 0;
+  border-radius: 10px; padding: 14px 16px;
+  cursor: pointer; font-size: 16px;
+  font-family: 'Syne', sans-serif; font-weight: 600; letter-spacing: 0.02em;
+  color: #fff;
+  background: linear-gradient(90deg, #F15A22, #d44a10);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(241, 90, 34, 0.3);
+}
+.btn:hover    { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(241, 90, 34, 0.45); filter: brightness(1.06); }
+.btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* Pie del formulario: enlace a registro */
+.autenticacion-pie { margin-top: 22px; text-align: center; font-size: 14px; color: rgba(255, 255, 255, 0.45); font-family: 'Inter', system-ui, sans-serif; }
+
+/* Mensajes flash de éxito y error adaptados al tema oscuro */
+.mensaje { margin: 0 0 16px; padding: 10px 12px; border-radius: 10px; font-size: 14px; font-family: 'Inter', system-ui, sans-serif; }
+.mensaje.error { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35); }
+.mensaje.ok    { background: rgba(34, 197, 94, 0.15); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.35); }
+
+/* Borde rojo en inputs con validación fallida */
+.invalido { border-bottom-color: #fca5a5 !important; }
+
+/* Indicadores de requisitos de contraseña (registro) */
+.reglas-contrasena {
+  margin-top: 6px; padding: 0; font-size: 13px;
+  font-family: inherit; font-weight: 700; line-height: 1.4; display: none;
+}
+.reglas-contrasena.show { display: block; }
+.reglas-contrasena .regla {
+  display: flex; align-items: flex-start; gap: 6px; margin-bottom: 4px;
+  font-size: 13px; font-weight: 700;
+}
+.reglas-contrasena .regla::before {
+  content: "✖"; width: 14px; height: 14px; margin-top: 1px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 900; line-height: 1;
+}
+.reglas-contrasena .regla.ok  { color: #86efac; }
+.reglas-contrasena .regla.ok::before { content: "✔"; }
+.reglas-contrasena .regla.bad { color: #fca5a5; }
+
+/* Indicador de coincidencia entre contraseña y confirmación */
+.coincidencia { margin-top: 4px; font-size: 13px; font-family: inherit; font-weight: 700; line-height: 1.4; display: none; }
+.coincidencia.show { display: block; }
+.coincidencia.ok  { color: #86efac; }
+.coincidencia.bad { color: #fca5a5; }

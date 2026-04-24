@@ -1,0 +1,21 @@
+{
+	admin off
+	frankenphp
+}
+
+:{$PORT:80} {
+	root * /app
+
+	encode zstd br gzip
+
+	# Route all /api/* requests through the API router
+	handle /api/* {
+		rewrite * /api/index.php
+		php_server
+	}
+
+	# Main app — FrankenPHP try_files handles the rest
+	handle {
+		php_server
+	}
+}

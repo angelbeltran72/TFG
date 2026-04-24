@@ -1,0 +1,23 @@
+# Entorno
+.env
+
+# Dependencias (se reinstalan con composer/npm)
+/vendor/
+/node_modules/
+package.json
+package-lock.json
+
+# Archivos subidos por usuarios
+/uploads/avatars/*
+!/uploads/avatars/.gitkeep
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores e IDEs
+.vscode/
+.idea/
+*.swp
+*.swo

@@ -1,0 +1,91 @@
+# ATRIBUCIONES DE TERCEROS
+
+AlertHub — Gestor de Incidencias
+
+Este proyecto hace uso de las siguientes bibliotecas y recursos de
+terceros. A continuación se listan sus licencias y avisos de copyright.
+
+---
+
+Three.js r128
+Copyright (c) 2010-2021 three.js authors
+Licencia: MIT
+Fuente: https://threejs.org / https://github.com/mrdoob/three.js
+Uso: Fondo animado WebGL en las vistas de autenticación
+(assets/js/liquid-gradient.js carga Three.js desde cdnjs)
+
+---
+
+Google Fonts — Syne
+Diseñada por Bonjour Monde, Lucas Descroix
+Licencia: SIL Open Font License 1.1
+Fuente: https://fonts.google.com/specimen/Syne
+Uso: Títulos en las vistas de autenticación (login, registro,
+recuperación y restablecimiento de contraseña)
+
+Google Fonts — Inter
+Diseñada por Rasmus Andersson
+Licencia: SIL Open Font License 1.1
+Fuente: https://fonts.google.com/specimen/Inter
+Uso: Texto de cuerpo en las vistas de autenticación y en la app
+
+Google Fonts — Manrope
+Diseñada por Mikhail Sharanda
+Licencia: SIL Open Font License 1.1
+Fuente: https://fonts.google.com/specimen/Manrope
+Uso: Títulos y texto de cuerpo en las vistas autenticadas
+
+---
+
+Material Symbols Outlined (Google Fonts)
+Copyright (c) Google LLC
+Licencia: Apache License 2.0
+Fuente: https://fonts.google.com/icons
+Uso: Iconos de navegación, acciones y estados en todas las
+vistas autenticadas
+
+---
+
+PHPMailer 7.x
+Copyright (c) 2012-2024 Marcus Bointon, Jim Jagielski, Andy Prevost,
+Codeworx Tech
+Licencia: GNU Lesser General Public License v2.1 (LGPL-2.1)
+Fuente: https://github.com/PHPMailer/PHPMailer
+Uso: Envío de correos de recuperación de contraseña (libs/Mailer.php)
+
+---
+
+phpdotenv 5.x (vlucas/phpdotenv)
+Copyright (c) 2013 Vance Lucas
+Licencia: MIT
+Fuente: https://github.com/vlucas/phpdotenv
+Uso: Carga de variables de entorno desde .env al arrancar la
+aplicación (libs/setup.php)
+
+---
+
+PHPUnit 11.x
+Copyright (c) 2001-2024 Sebastian Bergmann
+Licencia: BSD 3-Clause
+Fuente: https://phpunit.de / https://github.com/sebastianbergmann/phpunit
+Uso: Suite de pruebas automatizadas (tests/) — dependencia de
+desarrollo, no se incluye en producción
+
+---
+
+TEXTOS LEGALES DE LAS LICENCIAS REFERENCIADAS
+
+SIL Open Font License 1.1
+https://scripts.sil.org/OFL
+
+Apache License 2.0
+https://www.apache.org/licenses/LICENSE-2.0
+
+MIT License
+https://opensource.org/licenses/MIT
+
+GNU Lesser General Public License v2.1
+https://www.gnu.org/licenses/lgpl-2.1.html
+
+BSD 3-Clause License
+https://opensource.org/licenses/BSD-3-Clause
