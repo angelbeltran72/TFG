@@ -204,7 +204,7 @@ class TicketController extends AppController {
       exit;
     }
 
-    if ($ticket['estado'] === 'sin_abrir') {
+    if ($ticket['estado'] === 'sin_abrir' && $role !== 'cliente') {
       TicketModel::update($id, ['estado' => 'abierta']);
       TicketCommentModel::logEvent($id, (int)$user['id'], 'state_change', 'sin_abrir|abierta');
       $ticket['estado'] = 'abierta';
@@ -452,8 +452,8 @@ class TicketController extends AppController {
     $role = $this->userRole($user);
     $ticketId  = (int)($_POST['ticket_id'] ?? 0);
     $contenido = trim($_POST['contenido'] ?? '');
-    $isInternal = $isAdmin = $this->isAdmin($user);
-    $isInternal = $isAdmin && !empty($_POST['is_internal']);
+    $isAdmin = $this->isAdmin($user);
+    $isInternal = ($isAdmin || $role === 'user') && !empty($_POST['is_internal']);
 
     if ($ticketId <= 0 || mb_strlen($contenido) < 2) {
       $_SESSION['flash'] = ['type' => 'error', 'msg' => 'Comentario demasiado corto.'];
@@ -507,6 +507,12 @@ class TicketController extends AppController {
       exit;
     }
 
+    if (!$isAdmin && (int)($ticket['asignado_a'] ?? 0) !== (int)$user['id']) {
+      $_SESSION['flash'] = ['type' => 'error', 'msg' => 'Solo el agente asignado o un administrador puede cambiar el estado.'];
+      header('Location: index.php?controller=Ticket&action=detalle&id=' . $ticketId);
+      exit;
+    }
+
     if ($nuevoEstado === 'cerrada' && !$isAdmin) {
       $_SESSION['flash'] = ['type' => 'error', 'msg' => 'Sin permisos para cerrar tickets.'];
       header('Location: index.php?controller=Ticket&action=detalle&id=' . $ticketId);
@@ -548,6 +554,9 @@ class TicketController extends AppController {
     $ticket = TicketModel::findById($ticketId, (int)$user['id'], $isAdmin, $role);
     if (!$ticket) {
       echo json_encode(['ok' => false, 'msg' => 'Ticket no encontrado.']); exit;
+    }
+    if (!$isAdmin && (int)($ticket['asignado_a'] ?? 0) !== (int)$user['id']) {
+      echo json_encode(['ok' => false, 'msg' => 'Solo el agente asignado o un administrador puede cambiar el estado.']); exit;
     }
     if ($nuevo === 'cerrada' && !$isAdmin) {
       echo json_encode(['ok' => false, 'msg' => 'Sin permisos para cerrar tickets.']); exit;
@@ -698,7 +707,7 @@ class TicketController extends AppController {
       exit;
     }
 
-    if ($ticket['estado'] === 'sin_abrir') {
+    if ($ticket['estado'] === 'sin_abrir' && $role !== 'cliente') {
       TicketModel::update($id, ['estado' => 'abierta']);
       TicketCommentModel::logEvent($id, (int)$user['id'], 'state_change', 'sin_abrir|abierta');
       $ticket['estado'] = 'abierta';

@@ -296,15 +296,16 @@
   color: var(--primary);
 }
 
-/* Add comment form */
+/* Add comment form — grid de 2 cols: avatar(28px) | contenido(1fr) */
 .td-comment-form {
-  display: flex; gap: 12px; align-items: flex-start;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  column-gap: 12px;
+  row-gap: 10px;
   padding-top: 20px;
   border-top: 1px solid var(--surface-container);
 }
-.td-comment-input-wrap { flex: 1; }
 .td-comment-input {
-  width: 100%;
   background: var(--surface-container);
   border: 1.5px solid transparent;
   border-radius: 14px;
@@ -315,16 +316,31 @@
 }
 .td-comment-input::placeholder { color: #94a3b8; }
 .td-comment-input:focus { border-color: var(--primary); background: #fff; }
-.td-comment-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
+.td-comment-actions {
+  grid-column: 2;
+  display: flex; align-items: center; gap: 8px;
+}
+.td-internal-toggle {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 600; color: #94a3b8;
+  cursor: pointer; user-select: none; font-family: var(--font-body);
+}
+.td-toggle-check {
+  width: 14px; height: 14px; flex-shrink: 0;
+  accent-color: var(--primary); cursor: pointer;
+}
+.td-internal-toggle:hover .td-toggle-label { color: #64748b; }
+.td-internal-toggle:has(.td-toggle-check:checked) .td-toggle-label { color: #c2410c; }
 .td-comment-submit {
   display: flex; align-items: center; gap: 6px;
-  padding: 7px 14px;
-  background: var(--primary); border: none; border-radius: 10px;
+  padding: 7px 18px; margin-left: auto;
+  background: var(--primary); border: none; border-radius: 20px;
   font-size: 12px; font-weight: 700; color: #fff;
   cursor: pointer; font-family: var(--font-body);
-  transition: opacity .15s;
+  transition: opacity .15s, box-shadow .15s;
+  box-shadow: 0 2px 8px rgba(99,102,241,.25);
 }
-.td-comment-submit:hover { opacity: .88; }
+.td-comment-submit:hover { opacity: .88; box-shadow: 0 4px 12px rgba(99,102,241,.35); }
 .td-comment-submit .material-symbols-outlined { font-size: 15px; }
 
 /* Metadata list */
@@ -409,8 +425,10 @@
   .td-card,
   .td-card-meta { padding: 16px; }
 
-  /* Formulario de comentario: avatar encima del textarea */
-  .td-comment-form { flex-direction: column; }
+  /* Formulario de comentario: colapsa a 1 columna en móvil */
+  .td-comment-form { grid-template-columns: 1fr; }
+  .td-comment-form .td-tl-avatar { display: none; }
+  .td-comment-actions { grid-column: 1; }
 
   /* Metadatos: etiqueta y valor apilados en pantallas muy estrechas */
   .td-meta-row { flex-wrap: wrap; }

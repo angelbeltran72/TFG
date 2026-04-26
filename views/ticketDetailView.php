@@ -244,8 +244,7 @@ $__pageTitle = isset($ticket["titulo"]) ? "Ticket #" . (int)($ticket["id"] ?? 0)
                     <span class="td-comment-author"><?= htmlspecialchars($autor) ?></span>
                     <?php if (!empty($c['is_internal'])): ?>
                       <span class="td-comment-internal" title="Nota interna">
-                        <span class="material-symbols-outlined" style="font-size:14px">lock</span>
-                        Interna
+                        Nota interna
                       </span>
                     <?php endif; ?>
                     <span class="td-tl-time"><?= $time ?></span>
@@ -261,20 +260,22 @@ $__pageTitle = isset($ticket["titulo"]) ? "Ticket #" . (int)($ticket["id"] ?? 0)
 
           </div>
 
-          <!-- Añadir comentario -->
+          <!-- Añadir comentario (solo admin y agente, no cliente) -->
           <?php if ($estado !== 'cerrada' && !$isCliente): ?>
           <form method="POST" action="index.php?controller=Ticket&action=comentar" class="td-comment-form">
             <?= Csrf::field() ?>
             <input type="hidden" name="ticket_id" value="<?= $tId ?>">
             <div class="td-tl-avatar self"><?= strtoupper(substr($user["nombre"], 0, 2)) ?></div>
-            <div class="td-comment-input-wrap">
-              <textarea name="contenido" class="td-comment-input" placeholder="Escribe un comentario..." rows="2" required></textarea>
-              <div class="td-comment-actions">
-                <button type="submit" class="td-comment-submit">
-                  <span class="material-symbols-outlined">send</span>
-                  Comentar
-                </button>
-              </div>
+            <textarea name="contenido" class="td-comment-input" placeholder="Escribe un comentario externo (visible para el cliente)..." rows="2" required></textarea>
+            <div class="td-comment-actions">
+              <label class="td-internal-toggle" title="Las notas internas NO son visibles para el cliente">
+                <input type="checkbox" name="is_internal" value="1" class="td-toggle-check">
+                <span class="td-toggle-label">Nota interna</span>
+              </label>
+              <button type="submit" class="td-comment-submit">
+                <span class="material-symbols-outlined">send</span>
+                Enviar
+              </button>
             </div>
           </form>
           <?php endif; ?>
@@ -395,7 +396,7 @@ $__pageTitle = isset($ticket["titulo"]) ? "Ticket #" . (int)($ticket["id"] ?? 0)
           </p>
 
           <div class="td-actions">
-            <?php if (!$isCliente && $estado !== 'resuelta' && $estado !== 'cerrada'): ?>
+            <?php if (!$isCliente && ($isAdmin || (int)($ticket['asignado_a'] ?? 0) === (int)$user['id']) && $estado !== 'resuelta' && $estado !== 'cerrada'): ?>
             <form method="POST" action="index.php?controller=Ticket&action=cambiarEstado">
               <?= Csrf::field() ?>
               <input type="hidden" name="ticket_id" value="<?= $tId ?>">
