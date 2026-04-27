@@ -4,8 +4,6 @@
 # Dependencias (se reinstalan con composer/npm)
 /vendor/
 /node_modules/
-package.json
-package-lock.json
 
 # Archivos subidos por usuarios
 /uploads/avatars/*
