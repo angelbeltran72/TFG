@@ -7,7 +7,8 @@ $targetDepts ??= [];
 $allDepts    ??= [];
 $createdAt   ??= null;
 
-$targetCargo    = ($target["rol"] ?? "user") === "admin" ? "Administrador" : "Agente de soporte";
+$_cargoMap      = ['admin' => 'Administrador', 'cliente' => 'Cliente'];
+$targetCargo    = $_cargoMap[$target["rol"] ?? "user"] ?? 'Agente de soporte';
 $targetInitial  = strtoupper(substr($target["nombre"] ?? "U", 0, 1));
 $targetIsActive = (bool)($target["is_active"] ?? true);
 $targetDeptIds  = array_map('intval', array_column($targetDepts, 'id'));
@@ -123,7 +124,7 @@ $__pageTitle = isset($target["nombre"]) ? "Perfil de " . $target["nombre"] : "Pe
         <div class="app-user-info">
           <span class="app-user-name"><?= htmlspecialchars($_SESSION["usuario"]["nombre"] ?? "") ?></span>
           <span class="app-user-role">
-            <?= (($_SESSION["usuario"]["rol"] ?? "user") === "admin") ? "Administrador" : "Agente de soporte" ?>
+            <?= ['admin' => 'Administrador', 'cliente' => 'Cliente'][$_SESSION["usuario"]["rol"] ?? "user"] ?? 'Agente de soporte' ?>
           </span>
         </div>
         <div class="app-avatar">
@@ -456,8 +457,9 @@ $__pageTitle = isset($target["nombre"]) ? "Perfil de " . $target["nombre"] : "Pe
         <div class="pf-form-group">
           <label class="pf-label">Rol</label>
           <select class="pf-select" name="rol">
-            <option value="user"  <?= ($target['rol'] ?? 'user') === 'user'  ? 'selected' : '' ?>>Agente de soporte</option>
-            <option value="admin" <?= ($target['rol'] ?? 'user') === 'admin' ? 'selected' : '' ?>>Administrador</option>
+            <option value="user"    <?= ($target['rol'] ?? 'user') === 'user'    ? 'selected' : '' ?>>Agente de soporte</option>
+            <option value="admin"  <?= ($target['rol'] ?? 'user') === 'admin'  ? 'selected' : '' ?>>Administrador</option>
+            <option value="cliente"<?= ($target['rol'] ?? 'user') === 'cliente' ? 'selected' : '' ?>>Cliente</option>
           </select>
         </div>
 

@@ -132,6 +132,10 @@
   color: #4338ca;
   background: #e0e7ff;
 }
+.ul-role-badge.cliente {
+  color: #0f766e;
+  background: #ccfbf1;
+}
 
 /* Cuerpo de tarjeta */
 .ul-card-body { flex: 1; }

@@ -3,10 +3,15 @@ $user     ??= $_SESSION["usuario"] ?? ["nombre" => "Usuario", "rol" => "user"];
 $usuarios ??= [];
 $q        ??= "";
 $__pageTitle = "Usuarios";
-$cargo = ($user["rol"] ?? "user") === "admin" ? "Administrador" : "Agente de soporte";
+$_cargoMap = ['admin' => 'Administrador', 'cliente' => 'Cliente'];
+$cargo = $_cargoMap[$user["rol"] ?? "user"] ?? 'Agente de soporte';
 
 function uCargo(string $rol): string {
-  return $rol === "admin" ? "Administrador" : "Agente de soporte";
+  return match($rol) {
+    'admin'   => 'Administrador',
+    'cliente' => 'Cliente',
+    default   => 'Agente de soporte',
+  };
 }
 function uIsOnline(?string $lastSeen): bool {
   if (!$lastSeen) return false;
@@ -151,14 +156,14 @@ function uInitials(string $nombre): string {
           $online   = uIsOnline($u["last_seen_at"] ?? null);
           $initials = uInitials($u["nombre"]);
           $uCargo   = uCargo($u["rol"]);
-          $isAdmin  = ($u["rol"] === "admin");
+          $uRolClass = match($u["rol"]) { 'admin' => 'admin', 'cliente' => 'cliente', default => '' };
           ?>
           <a href="index.php?controller=Perfil&action=verPerfilUsuario&id=<?= (int)$u["id"] ?>" class="ul-card">
 
             <div class="ul-card-top">
               <!-- Avatar -->
               <div class="ul-avatar-wrap">
-                <div class="ul-avatar <?= $isAdmin ? "admin" : "" ?>">
+                <div class="ul-avatar <?= $uRolClass ?>">
                   <?php if (!empty($u["avatar_path"])): ?>
                     <img src="<?= htmlspecialchars($u["avatar_path"]) ?>" alt="">
                   <?php else: ?>
@@ -171,7 +176,7 @@ function uInitials(string $nombre): string {
               </div>
 
               <!-- Badge de rol -->
-              <span class="ul-role-badge <?= $isAdmin ? "admin" : "" ?>">
+              <span class="ul-role-badge <?= $uRolClass ?>">
                 <?= htmlspecialchars($uCargo) ?>
               </span>
             </div>
