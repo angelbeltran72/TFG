@@ -158,6 +158,48 @@ $__pageTitle = isset($ticket["titulo"]) ? "Ticket #" . (int)($ticket["id"] ?? 0)
           </div>
         </div>
 
+        <!-- Adjuntos -->
+        <?php $adjuntos ??= []; ?>
+        <div class="td-card">
+          <p class="td-section-title">
+            <span class="material-symbols-outlined">attach_file</span>
+            Archivos adjuntos
+            <?php if (!empty($adjuntos)): ?>
+              <span class="td-section-count"><?= count($adjuntos) ?></span>
+            <?php endif; ?>
+          </p>
+
+          <?php if (!empty($adjuntos)): ?>
+          <div class="td-attachments">
+            <?php foreach ($adjuntos as $adj):
+              $mime    = $adj['mime_type'] ?? '';
+              $isImage = str_starts_with($mime, 'image/');
+              $sizeKb  = round(($adj['size_bytes'] ?? 0) / 1024, 1);
+              $sizeStr = $sizeKb >= 1024 ? round($sizeKb / 1024, 1) . ' MB' : $sizeKb . ' KB';
+              if ($mime === 'application/pdf')                          $icon = 'picture_as_pdf';
+              elseif (str_contains($mime, 'word'))                     $icon = 'description';
+              elseif (str_contains($mime, 'excel') || str_contains($mime, 'spreadsheet')) $icon = 'table_chart';
+              elseif (str_contains($mime, 'zip'))                      $icon = 'folder_zip';
+              elseif (str_starts_with($mime, 'image/'))                $icon = 'image';
+              else                                                      $icon = 'attach_file';
+            ?>
+            <a href="<?= htmlspecialchars($adj['storage_path']) ?>" target="_blank" rel="noopener" class="td-attachment-item" title="<?= htmlspecialchars($adj['original_name']) ?>">
+              <?php if ($isImage): ?>
+                <img src="<?= htmlspecialchars($adj['storage_path']) ?>" alt="<?= htmlspecialchars($adj['original_name']) ?>" class="td-attachment-thumb">
+              <?php else: ?>
+                <span class="td-attachment-icon material-symbols-outlined"><?= $icon ?></span>
+              <?php endif; ?>
+              <span class="td-attachment-name"><?= htmlspecialchars($adj['original_name']) ?></span>
+              <span class="td-attachment-size"><?= $sizeStr ?></span>
+            </a>
+            <?php endforeach; ?>
+          </div>
+          <?php else: ?>
+          <p class="td-attachments-empty">No hay archivos adjuntos.</p>
+          <?php endif; ?>
+
+        </div>
+
         <!-- Actividad -->
         <div class="td-card">
           <p class="td-section-title">

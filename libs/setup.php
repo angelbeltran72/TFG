@@ -47,6 +47,7 @@ require_once "models/UserPermissionModel.php";
 require_once "models/SystemSettingModel.php";
 require_once "models/ActivityLogModel.php";
 require_once "models/TicketCommentModel.php";
+require_once "models/TicketAttachmentModel.php";
 require_once "models/CategoriaModel.php";
 require_once "models/EtiquetaModel.php";
 require_once "models/MessageModel.php";

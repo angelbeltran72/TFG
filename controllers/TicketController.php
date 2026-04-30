@@ -179,6 +179,35 @@ class TicketController extends AppController {
       );
     }
 
+    // Guardar archivos adjuntos
+    if (!empty($_FILES['adjuntos']['name'][0])) {
+      $allowedMime = [
+        'image/jpeg','image/png','image/gif','image/webp',
+        'application/pdf',
+        'application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/plain','text/csv',
+        'application/zip','application/x-zip-compressed',
+      ];
+      $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/MVC/uploads/tickets/';
+      $count = count($_FILES['adjuntos']['name']);
+      for ($i = 0; $i < $count; $i++) {
+        if ($_FILES['adjuntos']['error'][$i] !== UPLOAD_ERR_OK) continue;
+        $tmp          = $_FILES['adjuntos']['tmp_name'][$i];
+        $originalName = basename($_FILES['adjuntos']['name'][$i]);
+        $sizeBytes    = (int)$_FILES['adjuntos']['size'][$i];
+        $finfo        = new finfo(FILEINFO_MIME_TYPE);
+        $mimeType     = $finfo->file($tmp);
+        if (!in_array($mimeType, $allowedMime, true)) continue;
+        $ext      = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+        $filename = 't' . $id . '_' . uniqid() . '.' . $ext;
+        $destFs   = $uploadDir . $filename;
+        if (!move_uploaded_file($tmp, $destFs)) continue;
+        $storagePath = BASE . '/uploads/tickets/' . $filename;
+        TicketAttachmentModel::save($id, (int)$user['id'], $filename, $storagePath, $originalName, $mimeType, $sizeBytes);
+      }
+    }
+
     $_SESSION['flash'] = ['type' => 'success', 'msg' => "Incidencia creada (#$id)."];
     header('Location: ' . $this->redirectListByRole($this->userRole($user)));
     exit;
@@ -211,11 +240,13 @@ class TicketController extends AppController {
     }
 
     $comentarios = TicketCommentModel::getByTicket($id, $role !== 'cliente');
+    $adjuntos    = TicketAttachmentModel::getByTicket($id);
 
     $this->view->show("ticketDetailView", [
       "user"        => $user,
       "ticket"      => $ticket,
       "comentarios" => $comentarios,
+      "adjuntos"    => $adjuntos,
       "isAdmin"     => $isAdmin,
       "role"        => $role,
     ]);
@@ -484,6 +515,69 @@ class TicketController extends AppController {
     exit;
   }
 
+  public function adjuntar() {
+    $user     = $this->requireLogin();
+    $this->verificarCsrf('index.php?controller=Ticket&action=listar');
+    $role     = $this->userRole($user);
+    $isAdmin  = $this->isAdmin($user);
+    $ticketId = (int)($_POST['ticket_id'] ?? 0);
+
+    if ($ticketId <= 0) {
+      $_SESSION['flash'] = ['type' => 'error', 'msg' => 'Ticket no válido.'];
+      header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? 'index.php?controller=Ticket&action=listar'));
+      exit;
+    }
+
+    $ticket = TicketModel::findById($ticketId, (int)$user['id'], $isAdmin, $role);
+    if (!$ticket || $ticket['estado'] === 'cerrada') {
+      $_SESSION['flash'] = ['type' => 'error', 'msg' => 'No se pueden añadir adjuntos a este ticket.'];
+      header('Location: index.php?controller=Ticket&action=detalle&id=' . $ticketId);
+      exit;
+    }
+
+    if (empty($_FILES['adjuntos']['name'][0])) {
+      $_SESSION['flash'] = ['type' => 'error', 'msg' => 'No has seleccionado ningún archivo.'];
+      header('Location: index.php?controller=Ticket&action=detalle&id=' . $ticketId);
+      exit;
+    }
+
+    $allowedMime = [
+      'image/jpeg','image/png','image/gif','image/webp',
+      'application/pdf',
+      'application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain','text/csv',
+      'application/zip','application/x-zip-compressed',
+    ];
+    $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/MVC/uploads/tickets/';
+    $saved     = 0;
+    $count     = count($_FILES['adjuntos']['name']);
+
+    for ($i = 0; $i < $count; $i++) {
+      if ($_FILES['adjuntos']['error'][$i] !== UPLOAD_ERR_OK) continue;
+      $tmp          = $_FILES['adjuntos']['tmp_name'][$i];
+      $originalName = basename($_FILES['adjuntos']['name'][$i]);
+      $sizeBytes    = (int)$_FILES['adjuntos']['size'][$i];
+      $finfo        = new finfo(FILEINFO_MIME_TYPE);
+      $mimeType     = $finfo->file($tmp);
+      if (!in_array($mimeType, $allowedMime, true)) continue;
+      $ext      = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+      $filename = 't' . $ticketId . '_' . uniqid() . '.' . $ext;
+      $destFs   = $uploadDir . $filename;
+      if (!move_uploaded_file($tmp, $destFs)) continue;
+      $storagePath = BASE . '/uploads/tickets/' . $filename;
+      TicketAttachmentModel::save($ticketId, (int)$user['id'], $filename, $storagePath, $originalName, $mimeType, $sizeBytes);
+      $saved++;
+    }
+
+    $_SESSION['flash'] = $saved > 0
+      ? ['type' => 'success', 'msg' => $saved . ' archivo(s) adjuntado(s) correctamente.']
+      : ['type' => 'error',   'msg' => 'No se pudo guardar ningún archivo (tipo no permitido o error al subir).'];
+
+    header('Location: index.php?controller=Ticket&action=detalle&id=' . $ticketId);
+    exit;
+  }
+
   public function cambiarEstado() {
     $user    = $this->requireLogin();
     $this->forbidClientManagement($user);
@@ -714,11 +808,13 @@ class TicketController extends AppController {
     }
 
     $comentarios = TicketCommentModel::getByTicket($id, $role !== 'cliente');
+    $adjuntos    = TicketAttachmentModel::getByTicket($id);
     $this->view->show("ticketDetailView", [
       "user"        => $user,
       "ticket"      => $ticket,
       "isAdmin"     => $isAdmin,
       "comentarios" => $comentarios,
+      "adjuntos"    => $adjuntos,
       "role"        => $role,
     ]);
   }

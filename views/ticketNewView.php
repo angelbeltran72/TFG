@@ -2,6 +2,9 @@
 $user          ??= $_SESSION["usuario"] ?? ["nombre" => "Usuario", "rol" => "user"];
 $departamentos ??= [];
 $isAdmin       ??= false;
+$categorias    ??= [];
+$usuarios      ??= [];
+$canAddCliente ??= false;
 $cargo           = ($user["rol"] ?? "user") === "admin" ? "Administrador" : "Agente de soporte";
 $__pageTitle     = "Nueva incidencia";
 ?>
@@ -113,7 +116,7 @@ $__pageTitle     = "Nueva incidencia";
       </div>
     </div>
 
-    <form id="tn-form" method="POST" action="index.php?controller=Ticket&action=crear">
+    <form id="tn-form" method="POST" action="index.php?controller=Ticket&action=crear" enctype="multipart/form-data">
       <?= Csrf::field() ?>
 
       <div class="tn-grid">
@@ -389,7 +392,7 @@ $__pageTitle     = "Nueva incidencia";
 
   // Abre el selector de archivos del sistema
   uploadBtn.addEventListener('click', function () { fileInput.click(); });
-  fileInput.addEventListener('change', function () { addFiles(this.files); this.value = ''; });
+  fileInput.addEventListener('change', function () { var f = Array.from(this.files); this.value = ''; addFiles(f); });
 
   // Arrastrar y soltar archivos sobre el dropzone
   dropzone.addEventListener('dragover',  function (e) { e.preventDefault(); dropzone.classList.add('drag-over'); });
